@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Smart Home 4CH</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+body { font-family:sans-serif; background:#eef2f5; text-align:center }
+.card { background:white; padding:15px; margin:10px auto; width:320px; border-radius:12px }
+button { padding:8px 12px; margin:4px }
+</style>
+</head>
+
+<body>
+<h2>Smart Home 4CH</h2>
+
+<div id="cards"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCpm-ASXEoZNI09ehc8YF3MIk_4yxXvXbI",
+  databaseURL: "https://home-front-light-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+for(let i=1;i<=4;i++){
+  document.getElementById("cards").innerHTML += `
+  <div class="card">
+    <h3>Relay ${i}</h3>
+    <div id="st${i}">...</div>
+
+    <button onclick="setMode(${i},'on')">เปิด</button>
+    <button onclick="setMode(${i},'off')">ปิด</button>
+    <button onclick="setMode(${i},'auto')">อัตโนมัติ</button>
+
+    <br><br>
+    เปิด <input type="time" id="on${i}">
+    ปิด <input type="time" id="off${i}">
+    <br><br>
+    <button onclick="saveTime(${i})">บันทึกเวลา</button>
+  </div>`;
+}
+
+function setMode(ch, mode){
+  db.ref("controls/sw"+ch).update({
+    mode: mode,
+    state: mode=="on"?1:0
+  });
+}
+
+function saveTime(ch){
+  db.ref("schedule/sw"+ch).set({
+    on: document.getElementById("on"+ch).value,
+    off: document.getElementById("off"+ch).value
+  });
+}
+
+db.ref().on("value", snap=>{
+  let d=snap.val();
+  for(let i=1;i<=4;i++){
+    let sw=d.controls["sw"+i];
+    document.getElementById("st"+i).innerText =
+      sw.mode.toUpperCase()+" : "+(sw.state?"ON":"OFF");
+  }
+});
+</script>
+</body>
+</html>
